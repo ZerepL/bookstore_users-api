@@ -2,6 +2,7 @@ package users
 
 import (
 	"fmt"
+	"github.com/ZerepL/bookstore_users-api/datasource/mysql/users_db"
 
 	dateUtils "github.com/ZerepL/bookstore_users-api/utils/date_utils"
 	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
@@ -12,6 +13,10 @@ var (
 )
 
 func (user *User) Get() *internalErrors.RestErr {
+	if err := users_db.Client.Ping(); err != nil {
+		panic(err)
+	}
+
 	result := usersDB[user.Id]
 	if result == nil {
 		return internalErrors.NewNotFoundError(fmt.Sprintf("user %d not found", user.Id))
