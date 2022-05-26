@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/ZerepL/bookstore_users-api/domain/users"
+	dateUtils "github.com/ZerepL/bookstore_users-api/utils/date_utils"
 	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
 )
 
@@ -19,6 +20,8 @@ func CreateUser(user users.User) (*users.User, *internalErrors.RestErr) {
 		return nil, err
 	}
 
+	user.Status = users.StatusActive
+	user.DateCreated = dateUtils.GetNowDBFormat()
 	if err := user.Save(); err != nil {
 		return nil, err
 	}
@@ -58,4 +61,9 @@ func UpdateUser(isPartial bool, user users.User) (*users.User, *internalErrors.R
 func DeleteUser(userId int64) *internalErrors.RestErr {
 	user := &users.User{Id: userId}
 	return user.Delete()
+}
+
+func Search(status string) ([]users.User, *internalErrors.RestErr) {
+	dao := &users.User{}
+	return dao.FindByStatus(status)
 }
