@@ -7,7 +7,12 @@ import (
 	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
 )
 
-func GetUser(userId int64) (*users.User, *internalErrors.RestErr) {
+var UserService userService = userService{}
+
+type userService struct {
+}
+
+func (s *userService) GetUser(userId int64) (*users.User, *internalErrors.RestErr) {
 	result := &users.User{Id: userId}
 	if err := result.Get(); err != nil {
 		return nil, err
@@ -16,7 +21,7 @@ func GetUser(userId int64) (*users.User, *internalErrors.RestErr) {
 	return result, nil
 }
 
-func CreateUser(user users.User) (*users.User, *internalErrors.RestErr) {
+func (s *userService) CreateUser(user users.User) (*users.User, *internalErrors.RestErr) {
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
@@ -31,8 +36,8 @@ func CreateUser(user users.User) (*users.User, *internalErrors.RestErr) {
 	return &user, nil
 }
 
-func UpdateUser(isPartial bool, user users.User) (*users.User, *internalErrors.RestErr) {
-	current, err := GetUser(user.Id)
+func (s *userService) UpdateUser(isPartial bool, user users.User) (*users.User, *internalErrors.RestErr) {
+	current, err := s.GetUser(user.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +65,12 @@ func UpdateUser(isPartial bool, user users.User) (*users.User, *internalErrors.R
 	return current, nil
 }
 
-func DeleteUser(userId int64) *internalErrors.RestErr {
+func (s *userService) DeleteUser(userId int64) *internalErrors.RestErr {
 	user := &users.User{Id: userId}
 	return user.Delete()
 }
 
-func Search(status string) (users.Users, *internalErrors.RestErr) {
+func (s *userService) Search(status string) (users.Users, *internalErrors.RestErr) {
 	dao := &users.User{}
 	return dao.FindByStatus(status)
 }
