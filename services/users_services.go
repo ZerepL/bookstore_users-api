@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/ZerepL/bookstore_users-api/domain/users"
+	"github.com/ZerepL/bookstore_users-api/utils/crypto_utils"
 	dateUtils "github.com/ZerepL/bookstore_users-api/utils/date_utils"
 	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
 )
@@ -22,6 +23,7 @@ func CreateUser(user users.User) (*users.User, *internalErrors.RestErr) {
 
 	user.Status = users.StatusActive
 	user.DateCreated = dateUtils.GetNowDBFormat()
+	user.Password = crypto_utils.GetMd5(user.Password)
 	if err := user.Save(); err != nil {
 		return nil, err
 	}
@@ -63,7 +65,7 @@ func DeleteUser(userId int64) *internalErrors.RestErr {
 	return user.Delete()
 }
 
-func Search(status string) ([]users.User, *internalErrors.RestErr) {
+func Search(status string) (users.Users, *internalErrors.RestErr) {
 	dao := &users.User{}
 	return dao.FindByStatus(status)
 }
