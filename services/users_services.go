@@ -7,9 +7,17 @@ import (
 	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
 )
 
-var UserService userService = userService{}
+var UserService usersServiceInterface = &userService{}
 
 type userService struct {
+}
+
+type usersServiceInterface interface {
+	GetUser(int64) (*users.User, *internalErrors.RestErr)
+	CreateUser(users.User) (*users.User, *internalErrors.RestErr)
+	UpdateUser(bool, users.User) (*users.User, *internalErrors.RestErr)
+	DeleteUser(int64) *internalErrors.RestErr
+	SearchUser(string) (users.Users, *internalErrors.RestErr)
 }
 
 func (s *userService) GetUser(userId int64) (*users.User, *internalErrors.RestErr) {
@@ -70,7 +78,7 @@ func (s *userService) DeleteUser(userId int64) *internalErrors.RestErr {
 	return user.Delete()
 }
 
-func (s *userService) Search(status string) (users.Users, *internalErrors.RestErr) {
+func (s *userService) SearchUser(status string) (users.Users, *internalErrors.RestErr) {
 	dao := &users.User{}
 	return dao.FindByStatus(status)
 }

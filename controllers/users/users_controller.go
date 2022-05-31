@@ -96,7 +96,7 @@ func Delete(c *gin.Context) {
 func Search(c *gin.Context) {
 	status := c.Query("status")
 
-	users, err := services.UserService.Search(status)
+	users, err := services.UserService.SearchUser(status)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
