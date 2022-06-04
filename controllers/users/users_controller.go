@@ -19,6 +19,15 @@ func getUserId(userIdParam string) (int64, *internalErrors.RestErr) {
 	return userId, nil
 }
 
+// ShowAccount godoc
+// @Summary      Create user
+// @Description  create a new user
+// @Tags         users
+// @Produce      json
+// @Success      200  {object} users.User
+// @Failure      400  {object}  internalErrors.RestErr
+// @Failure      500  {object}  internalErrors.RestErr
+// @Router       /users [post]
 func Create(c *gin.Context) {
 	var user users.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -36,6 +45,18 @@ func Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, result)
 }
 
+// ShowAccount godoc
+// @Summary      Get user
+// @Description  get user info
+// @Tags         users
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Header       all  {string}  X-Public    "true"
+// @Success      200  {object}  users.User
+// @Failure      400  {object}  internalErrors.RestErr
+// @Failure      404  {object}  internalErrors.RestErr
+// @Failure      500  {object}  internalErrors.RestErr
+// @Router       /users/{id} [get]
 func Get(c *gin.Context) {
 	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
@@ -52,6 +73,19 @@ func Get(c *gin.Context) {
 	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
+// ShowAccount godoc
+// @Summary      Update user
+// @Description  update user info
+// @Tags         users
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Header       all  {string}  X-Public    "true"
+// @Success      200  {object}  users.User
+// @Failure      400  {object}  internalErrors.RestErr
+// @Failure      404  {object}  internalErrors.RestErr
+// @Failure      500  {object}  internalErrors.RestErr
+// @Router       /users/{id} [put]
+// @Router       /users/{id} [patch]
 func Update(c *gin.Context) {
 	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
@@ -78,6 +112,17 @@ func Update(c *gin.Context) {
 	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
+// ShowAccount godoc
+// @Summary      Delete user
+// @Description  delete user from db
+// @Tags         users
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {string}  string "status:deleted"
+// @Failure      400  {object}  internalErrors.RestErr
+// @Failure      404  {object}  internalErrors.RestErr
+// @Failure      500  {object}  internalErrors.RestErr
+// @Router       /users/{id} [delete]
 func Delete(c *gin.Context) {
 	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
@@ -93,6 +138,18 @@ func Delete(c *gin.Context) {
 
 }
 
+// ShowAccount godoc
+// @Summary      Search user by status
+// @Description  search a user based on status
+// @Tags         users
+// @Produce      json
+// @Header       all  {string}  X-Public    "true"
+// @Param        enumstring  query string false  "status" Enums(active)
+// @Success      200  {array}   users.User
+// @Failure      400  {object}  internalErrors.RestErr
+// @Failure      404  {object}  internalErrors.RestErr
+// @Failure      500  {object}  internalErrors.RestErr
+// @Router       /internal/users/search [get]
 func Search(c *gin.Context) {
 	status := c.Query("status")
 
