@@ -1,9 +1,8 @@
 package users
 
 import (
+	internalErrors "github.com/ZerepL/bookstore_utils/internal_errors"
 	"strings"
-
-	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
 )
 
 const (
@@ -22,7 +21,7 @@ type User struct {
 
 type Users []User
 
-func (user *User) Validate() *internalErrors.RestErr {
+func (user *User) Validate() internalErrors.RestErr {
 	user.FirstName = strings.TrimSpace(user.FirstName)
 	user.LastName = strings.TrimSpace(user.LastName)
 

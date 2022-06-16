@@ -8,7 +8,7 @@ const (
 )
 
 func GetNow() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }
 
 func GetNowString() string {

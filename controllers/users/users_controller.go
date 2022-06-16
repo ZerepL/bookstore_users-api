@@ -4,13 +4,14 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ZerepL/bookstore_oauth-go/oauth"
 	"github.com/ZerepL/bookstore_users-api/domain/users"
 	"github.com/ZerepL/bookstore_users-api/services"
-	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
+	internalErrors "github.com/ZerepL/bookstore_utils/internal_errors"
 	"github.com/gin-gonic/gin"
 )
 
-func getUserId(userIdParam string) (int64, *internalErrors.RestErr) {
+func getUserId(userIdParam string) (int64, internalErrors.RestErr) {
 	userId, userErr := strconv.ParseInt(userIdParam, 10, 64)
 	if userErr != nil {
 		return 0, internalErrors.NewBadRequestError("user id should be a number")
@@ -32,17 +33,16 @@ func Create(c *gin.Context) {
 	var user users.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		restErr := internalErrors.NewBadRequestError("invalid json body")
-		c.JSON(restErr.Status, restErr)
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 
-	result, restErr := services.UserService.CreateUser(user)
-	if restErr != nil {
-		c.JSON(restErr.Status, restErr)
+	result, saveErr := services.UserService.CreateUser(user)
+	if saveErr != nil {
+		c.JSON(saveErr.Status(), saveErr)
 		return
 	}
-
-	c.JSON(http.StatusCreated, result)
+	c.JSON(http.StatusCreated, result.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
 // ShowAccount godoc
@@ -58,19 +58,27 @@ func Create(c *gin.Context) {
 // @Failure      500  {object}  internalErrors.RestErr
 // @Router       /users/{id} [get]
 func Get(c *gin.Context) {
+	if err := oauth.AuthenticateRequest(c.Request); err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+
 	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
-		c.JSON(idErr.Status, idErr)
+		c.JSON(idErr.Status(), idErr)
 		return
 	}
-
 	user, getErr := services.UserService.GetUser(userId)
 	if getErr != nil {
-		c.JSON(getErr.Status, getErr)
+		c.JSON(getErr.Status(), getErr)
 		return
 	}
 
-	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
+	if oauth.GetCallerId(c.Request) == user.Id {
+		c.JSON(http.StatusOK, user.Marshall(false))
+		return
+	}
+	c.JSON(http.StatusOK, user.Marshall(oauth.IsPublic(c.Request)))
 }
 
 // ShowAccount godoc
@@ -89,14 +97,14 @@ func Get(c *gin.Context) {
 func Update(c *gin.Context) {
 	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
-		c.JSON(idErr.Status, idErr)
+		c.JSON(idErr.Status(), idErr)
 		return
 	}
 
 	var user users.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		restErr := internalErrors.NewBadRequestError("invalid json body")
-		c.JSON(restErr.Status, restErr)
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 
@@ -106,7 +114,7 @@ func Update(c *gin.Context) {
 
 	result, err := services.UserService.UpdateUser(isPartial, user)
 	if err != nil {
-		c.JSON(err.Status, err)
+		c.JSON(err.Status(), err)
 		return
 	}
 	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
@@ -126,12 +134,12 @@ func Update(c *gin.Context) {
 func Delete(c *gin.Context) {
 	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
-		c.JSON(idErr.Status, idErr)
+		c.JSON(idErr.Status(), idErr)
 		return
 	}
 
 	if err := services.UserService.DeleteUser(userId); err != nil {
-		c.JSON(err.Status, err)
+		c.JSON(err.Status(), err)
 		return
 	}
 	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
@@ -155,7 +163,7 @@ func Search(c *gin.Context) {
 
 	users, err := services.UserService.SearchUser(status)
 	if err != nil {
-		c.JSON(err.Status, err)
+		c.JSON(err.Status(), err)
 		return
 	}
 	c.JSON(http.StatusOK, users.Marshall(c.GetHeader("X-Public") == "true"))
@@ -165,12 +173,12 @@ func Login(c *gin.Context) {
 	var request users.LoginRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		restErr := internalErrors.NewBadRequestError("invalid json body")
-		c.JSON(restErr.Status, restErr)
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 	user, err := services.UserService.LoginUser(request)
 	if err != nil {
-		c.JSON(err.Status, err)
+		c.JSON(err.Status(), err)
 		return
 	}
 	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))

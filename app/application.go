@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/ZerepL/bookstore_users-api/logger"
+	"github.com/ZerepL/bookstore_utils/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,6 +11,7 @@ var (
 
 func StartApplication() {
 	mapUrls()
-	logger.Info("about to start application...")
-	router.Run(":8080")
+
+	logger.Info("about to start the application...")
+	router.Run(":8082")
 }

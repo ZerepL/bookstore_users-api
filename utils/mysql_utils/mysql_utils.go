@@ -1,29 +1,28 @@
 package mysql_utils
 
 import (
-	internalErrors "github.com/ZerepL/bookstore_users-api/utils/errors"
+	"errors"
+	internalErrors "github.com/ZerepL/bookstore_utils/internal_errors"
 	"github.com/go-sql-driver/mysql"
 	"strings"
 )
 
 const (
-	errorNoRows = "no rows in result set"
+	ErrorNoRows = "no rows in result set"
 )
 
-func ParserError(err error) *internalErrors.RestErr {
+func ParseError(err error) internalErrors.RestErr {
 	sqlErr, ok := err.(*mysql.MySQLError)
 	if !ok {
-		if strings.Contains(err.Error(), errorNoRows) {
+		if strings.Contains(err.Error(), ErrorNoRows) {
 			return internalErrors.NewNotFoundError("no record matching given id")
 		}
-
-		return internalErrors.NewInternalServerError("error parsing database response")
+		return internalErrors.NewInternalServerError("error parsing database response", err)
 	}
 
 	switch sqlErr.Number {
 	case 1062:
-		return internalErrors.NewBadRequestError("duplicated data")
+		return internalErrors.NewBadRequestError("invalid data")
 	}
-
-	return internalErrors.NewInternalServerError("error processing request")
+	return internalErrors.NewInternalServerError("error processing request", errors.New("database error"))
 }
